@@ -590,8 +590,9 @@ def _harmonize_regions(config, prefix, suffix, regions, hist, model, overrides,
     model = harmonizer.harmonize(overrides=overrides)
     utils.check_null(model, 'model')
     metadata = harmonizer.metadata()
-
+    
     # add aggregate variables. this works in three steps:
+
     # step 1: remove any sector total trajectories that also have subsectors to
     # be recalculated
     idx = utils.recalculated_row_idx(model, prefix, suffix)

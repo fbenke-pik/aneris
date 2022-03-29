@@ -11,7 +11,7 @@ import pandas as pd
 iamc_idx = ['Model', 'Scenario', 'Region', 'Variable']
 
 # default dataframe index
-df_idx = ['region', 'gas', 'sector', 'units']
+df_idx = ['region', 'domain', 'gas', 'sector', 'units']
 
 # paths to data dependencies
 here = os.path.join(os.path.dirname(os.path.realpath(__file__)))
@@ -147,11 +147,16 @@ def check_null(df, name=None, fail=False):
         df.dropna(inplace=True, axis=1)
 
 
-def gases(var_col):
-    """The gas associated with each variable"""
-    gasidx = lambda x: x.split('|').index('Emissions') + 1
-    return var_col.apply(lambda x: x.split('|')[gasidx(x)])
+# def gases(var_col):
+#     """The gas associated with each variable"""
+#     gasidx = lambda x: x.split('|').index('Emissions') + 1
+#     return var_col.apply(lambda x: x.split('|')[gasidx(x)])
 
+def domains(var_col):
+    return var_col.apply(lambda x: x.split('|')[1])
+
+def gases(var_col):        
+    return var_col.apply(lambda x: x.split('|')[2])
 
 def units(var_col):
     """returns a units column given a variable column"""
@@ -494,11 +499,11 @@ class FormatTranslator(object):
             raise ValueError(msg.format(df.columns))
 
         # make sure we're working with good data
-        if len(df['Model'].unique()) > 1:
-            raise ValueError(
-                'Model not unique: {}'.format(df['Model'].unique()))
+        # if len(df['Model'].unique()) > 1:
+        #     raise ValueError(
+        #         'Model not unique: {}'.format(df['Model'].unique()))
         assert(len(df['Scenario'].unique()) <= 1)
-        assert(df['Variable'].apply(lambda x: 'Emissions' in x).all())
+        # assert(df['Variable'].apply(lambda x: 'Emissions' in x).all())
 
         # save data
         if set_metadata:
@@ -507,6 +512,7 @@ class FormatTranslator(object):
 
         # add std columns needed for conversions
         df['region'] = df['Region']
+        df['domain'] = domains(df['Variable'])
         df['gas'] = gases(df['Variable'])
         df['units'] = df['Unit'].apply(lambda x: x.split()[0])
         df['sector'] = df['Variable']
@@ -520,10 +526,12 @@ class FormatTranslator(object):
         # remove emissions prefix
         def update_sector(row):
             sectors = row.sector.split('|')
-            idx = sectors.index('Emissions')
-            sectors.pop(idx)  # emissions
-            sectors.pop(idx)  # gas
+            #idx = sectors.index('Emissions')
+            idx = 1
+            sectors.pop(idx)  # domain
+            sectors.pop(idx)  # gas                
             return '|'.join(sectors).strip('|')
+            
         if not df.empty:
             df['sector'] = df.apply(update_sector, axis=1)
         # drop old columns
@@ -573,7 +581,7 @@ class FormatTranslator(object):
         def update_sector(row):
             sectors = row.sector.split('|')
             idx = self.prefix.count('|') + 1
-            sectors.insert(idx, 'Emissions')
+            sectors.insert(idx, row.domain)
             sectors.insert(idx + 1, row.gas)
             return '|'.join(sectors).strip('|')
         df['sector'] = df.apply(update_sector, axis=1)
