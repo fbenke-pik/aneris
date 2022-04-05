@@ -722,6 +722,6 @@ def diagnostics(unharmonized, model, metadata, config=None):
     if not neg.empty:
         _warn(
             'Negative Emissions found for non-CO2 gases:\n {}'.format(neg))
-        raise ValueError('Harmonization failed due to negative non-CO2 gases')
+        # raise ValueError('Harmonization failed due to negative non-CO2 gases')
 
     return report
