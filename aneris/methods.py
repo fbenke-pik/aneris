@@ -268,7 +268,7 @@ def budget(df, df_hist, harmonize_year='2015'):
         budget = (dyears * (np.asarray(emissions)[:-1] + demissions / 2)).sum()
         return budget
 
-    solver = pyo.SolverFactory("ipopt")
+    solver = pyo.SolverFactory("ipopt", executable="/usr/local/lib/libsipopt.so.3")
     if solver.executable() is None:
         raise RuntimeError(
             "No executable for the solver 'ipopt' found "
